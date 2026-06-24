@@ -13,6 +13,8 @@ export * as tutorRequestsApi from './tutorRequests';
 export * as assignmentsApi from './assignments';
 export * as adminApi from './admin';
 
+export { getSupabase, requireSupabase, isSupabaseConfigured } from './supabaseClient';
+
 export { ApiError, API_BASE_URL } from './client';
 export {
   getToken,
