@@ -1,0 +1,42 @@
+name: CI / Deploy Frontend
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    name: Build & Deploy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Type-check
+        run: npm run typecheck
+
+      - name: Build
+        run: npm run build
+        env:
+          # Backend API URL is inlined at build time. Set this repo variable to
+          # your Railway backend URL (Settings -> Secrets and variables -> Actions -> Variables).
+          VITE_API_URL: ${{ vars.VITE_API_URL }}
+
+      # Deploy to Cloudflare Pages only on pushes to main.
+      - name: Deploy to Cloudflare Pages
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy dist --project-name=dottutor --branch=main
